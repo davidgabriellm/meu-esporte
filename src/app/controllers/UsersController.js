@@ -1,9 +1,5 @@
-import "../../db/index.js";
 import * as Yup from "yup";
 import User from "../models/User";
-import "../../db/index"
-
-
 
 class UsersController {
   async register(req, res) {
@@ -12,18 +8,31 @@ class UsersController {
       email: Yup.string().email().required(),
       password: Yup.string().required().min(8),
       passwordConfirmation: Yup.string().when("password", (password, field) => {
-        password ? field.required().oneOf([Yup.ref("password")]) : field;
+        return password
+          ? field.required().oneOf([Yup.ref("password")], "Passwords must match")
+          : field;
       }),
     });
-    if (!(await schema.isValid(req.body))){
-        return res.status(400).json({error: "Error on validate schema."})
+
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ error: "Error validating schema." });
     }
 
-    const {id, name, email, createdAt, updatedAt} = await User.create(req.body)
+    const { name, email, password } = req.body;
 
-    return res.status(201).json({id, name, email, createdAt, updatedAt})
+    const userExists = await User.findOne({ where: { email } });
 
+    if (userExists) {
+      return res.status(400).json({ error: "Email already registered." });
+    }
 
+    const { id, createdAt, updatedAt } = await User.create({
+      name,
+      email,
+      password,
+    });
+
+    return res.status(201).json({ id, name, email, createdAt, updatedAt });
   }
 }
 

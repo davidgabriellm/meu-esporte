@@ -3,23 +3,29 @@ import { Router } from "express";
 import ProductsController from "./app/controllers/ProductsController";
 import CategoriesController from "./app/controllers/CategoriesController";
 import SessionsController from "./app/controllers/SessionsController";
+import CartController from "./app/controllers/CartController";
 
 import auth from "./app/middlewares/auth";
+import UsersController from "./app/controllers/UsersController";
 
 
 const routes = new Router()
 
 routes.post("/sessions", SessionsController.create)
+routes.post("/users", UsersController.register)
+
+
+routes.get("/products/:id", ProductsController.show);
+routes.get("/products", ProductsController.list); 
 
 
 routes.use(auth)
 
-routes.get('/home', (req, res) => {
-    res.send("ola mundo!")
-})
+routes.post("/cart", auth, CartController.addItem);
+routes.get("/cart", auth, CartController.list);
+routes.delete("/cart/:id", auth, CartController.removeItem);
 
-routes.post("/products", ProductsController.create);  
-routes.get("/products", ProductsController.list);     
+routes.post("/products", ProductsController.create);     
 routes.put("/products/:id", ProductsController.update); 
 routes.delete("/products/:id", ProductsController.delete); 
 

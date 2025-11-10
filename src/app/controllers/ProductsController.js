@@ -27,6 +27,19 @@ class ProductsController {
     });
     return res.json(products);
   }
+  async show (req, res){
+    const { id } = req.params;
+
+    const product = await Product.findByPk(id, {
+      include: [{ model: Category, attributes: ["name"] }],
+    });
+
+    if (!product) {
+      return res.status(404).json({ error: "Product not found." });
+    }
+
+    return res.json(product);
+  }
 
   async update(req, res) {
     const { id } = req.params;

@@ -7,18 +7,24 @@ class Product extends Model {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
-          defaultValue: DataTypes.UUIDV4
+          defaultValue: DataTypes.UUIDV4,
         },
         name: DataTypes.STRING,
         description: DataTypes.TEXT,
-        price: DataTypes.DECIMAL(10, 2),
+        price: {
+          type: DataTypes.DECIMAL(10, 2),
+          get() {
+            const rawValue = this.getDataValue("price");
+            return rawValue ? Number(rawValue) : 0;
+          },
+        },
         stock: DataTypes.INTEGER,
         image_url: DataTypes.STRING,
-        category_id: DataTypes.UUID
+        category_id: DataTypes.UUID,
       },
       {
         sequelize,
-         name: {
+        name: {
           singular: "product",
           plural: "products",
         },
