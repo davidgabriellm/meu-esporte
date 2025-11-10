@@ -7,19 +7,17 @@ class OrderItem extends Model {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
-          defaultValue: DataTypes.UUIDV4
+          defaultValue: DataTypes.UUIDV4,
         },
         order_id: DataTypes.UUID,
         product_id: DataTypes.UUID,
         quantity: DataTypes.INTEGER,
-        price: DataTypes.DECIMAL(10, 2)
+        price: DataTypes.DECIMAL(10, 2),
       },
       {
         sequelize,
-         name: {
-          singular: "orderItem",
-          plural: "orderItems",
-        }, 
+        tableName: "order_items", 
+        underscored: true, 
       }
     );
   }

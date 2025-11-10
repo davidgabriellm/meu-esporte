@@ -7,18 +7,16 @@ class CartItem extends Model {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
-          defaultValue: DataTypes.UUIDV4
+          defaultValue: DataTypes.UUIDV4,
         },
         user_id: DataTypes.UUID,
         product_id: DataTypes.UUID,
-        quantity: DataTypes.INTEGER
+        quantity: DataTypes.INTEGER,
       },
       {
         sequelize,
-         name: {
-          singular: "cartItem",
-          plural: "cartItems",
-        },
+        tableName: "cart_items",
+        underscored: true, 
       }
     );
   }
