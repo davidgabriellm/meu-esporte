@@ -16,14 +16,15 @@ class CartItem extends Model {
       {
         sequelize,
         tableName: "cart_items",
-        underscored: true, 
+        underscored: true,
+        timestamps: true,
       }
     );
   }
 
   static associate(models) {
-    this.belongsTo(models.User, { foreignKey: "user_id" });
-    this.belongsTo(models.Product, { foreignKey: "product_id" });
+   this.belongsTo(models.User, { foreignKey: "user_id" });
+   this.belongsTo(models.Product, { foreignKey: "product_id", as: "product" });;
   }
 }
 

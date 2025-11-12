@@ -19,7 +19,6 @@ class CartController {
     const product = await Product.findByPk(product_id);
     if (!product) return res.status(404).json({ error: "Product not found." });
 
-
     const existingItem = await CartItem.findOne({
       where: { user_id, product_id },
     });
@@ -42,6 +41,7 @@ class CartController {
       include: [
         {
           model: Product,
+          as: "product",
           attributes: ["name", "price", "image_url", "description"],
         },
       ],
@@ -59,6 +59,23 @@ class CartController {
 
     await item.destroy();
     return res.status(204).send();
+  }
+   async updateItem(req, res) {
+    const { id } = req.params;
+    const { quantity } = req.body;
+    const user_id = req.user_id;
+
+    if (!quantity || quantity < 1) {
+      return res.status(400).json({ error: "Quantity must be >= 1" });
+    }
+
+    const item = await CartItem.findOne({ where: { id, user_id } });
+    if (!item) return res.status(404).json({ error: "Item not found." });
+
+    item.quantity = quantity;
+    await item.save();
+
+    return res.json(item);
   }
 }
 

@@ -16,8 +16,8 @@ class OrderItem extends Model {
       },
       {
         sequelize,
-        tableName: "order_items", 
-        underscored: true, 
+        tableName: "order_items",
+        underscored: true,
       }
     );
   }
