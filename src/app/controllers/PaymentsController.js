@@ -1,35 +1,32 @@
-import * as Yup from "yup";
-import Payment from "../models/Payment.js";
-import Order from "../models/Order.js";
+import Payment from "../models/Payment";
+import Order from "../models/Order";
 
-class PaymentsController {
-  async create(req, res) {
-    const schema = Yup.object().shape({
-      order_id: Yup.string().uuid().required(),
-      method: Yup.string().required(),
-      amount: Yup.number().positive().required(),
+class PaymentController {
+  async update(req, res) {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const payment = await Payment.findByPk(id, {
+      include: [Order]
     });
 
-    if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: "Validation failed." });
+    if (!payment) {
+      return res.status(404).json({ error: "Payment not found" });
     }
 
-    const { order_id, method, amount } = req.body;
-    const order = await Order.findByPk(order_id);
+    if (payment.Order.user_id !== req.userId) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
 
-    if (!order) return res.status(404).json({ error: "Order not found." });
+    await payment.update({ status });
 
-    const payment = await Payment.create({
-      order_id,
-      method,
-      amount,
-      status: "completed",
-    });
+    
+    if (status === "paid") {
+      await payment.Order.update({ status: "paid" });
+    }
 
-    await order.update({ status: "paid" });
-
-    return res.status(201).json(payment);
+    return res.json(payment);
   }
 }
 
-export default new PaymentsController();
+export default new PaymentController();

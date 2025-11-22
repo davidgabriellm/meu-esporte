@@ -12,7 +12,7 @@ class User extends Model {
         },
         name: DataTypes.STRING,
         email: DataTypes.STRING,
-        password: DataTypes.VIRTUAL, 
+        password: DataTypes.VIRTUAL,
         password_hash: {
           type: DataTypes.STRING,
           allowNull: false,
@@ -27,7 +27,7 @@ class User extends Model {
       }
     );
 
-    this.addHook("beforeValidate", async (user) => { 
+    this.addHook("beforeValidate", async (user) => {
       if (user.password) {
         user.password_hash = await bcrypt.hash(user.password, 8);
       }
@@ -38,6 +38,11 @@ class User extends Model {
 
   checkPassword(password) {
     return bcrypt.compare(password, this.password_hash);
+  }
+
+  static associate(models) {
+    this.hasMany(models.Address, { foreignKey: "user_id", as: "addresses" });
+    this.hasMany(models.Order, { foreignKey: "user_id", as: "orders" });
   }
 }
 

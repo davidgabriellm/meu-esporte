@@ -11,10 +11,11 @@ class Address extends Model {
         },
         user_id: DataTypes.UUID,
         street: DataTypes.STRING,
+        number: DataTypes.STRING,
+        neighborhood: DataTypes.STRING,
         city: DataTypes.STRING,
         state: DataTypes.STRING,
-        postalCode: DataTypes.STRING,
-        is_default: DataTypes.BOOLEAN
+        zipcode: DataTypes.STRING
       },
       {
         sequelize,
@@ -28,6 +29,7 @@ class Address extends Model {
 
   static associate(models) {
     this.belongsTo(models.User, { foreignKey: "user_id" });
+    this.hasMany(models.Order, {foreignKey: "address_id", as: "orders" })
   }
 }
 

@@ -38,13 +38,10 @@ class UsersController {
   }
 
   async me(req, res) {
-    console.log("HEADER:", req.headers.authorization);
-    console.log("USER ID:", req.user_id);
     const user = await User.findByPk(req.user_id, {
       attributes: ["id", "name", "email"],
     });
 
-    console.log("USER FOUND:", user);
     return res.json(user);
   }
 }

@@ -1,46 +1,109 @@
-import * as Yup from "yup";
 import Order from "../models/Order.js";
 import OrderItem from "../models/OrderItem.js";
-import CartItem from "../models/CartItem.js";
+import Payment from "../models/Payment.js";
+import Address from "../models/Address.js";
 import Product from "../models/Product.js";
 
-class OrdersController {
-  async create(req, res) {
-    const { user_id } = req.params;
-    const cart_items = await CartItem.findAll({ where: { user_id } });
+class OrderController {
+  async store(req, res) {
+    const { items, total, address_id, payment_method } = req.body;
 
-    if (cart_items.length === 0) {
-      return res.status(400).json({ error: "Cart is empty." });
+    if (!items || items.length === 0) {
+      return res.status(400).json({ error: "Cart is empty" });
     }
 
-    let total = 0;
-    for (const item of cart_items) {
+    // Verifica se endereço pertence ao usuário
+    const address = await Address.findOne({
+      where: { id: address_id, user_id: req.userId }
+    });
+
+    if (!address) {
+      return res.status(400).json({ error: "Invalid address" });
+    }
+
+    // Valida se os produtos existem e têm preço correto
+    for (const item of items) {
       const product = await Product.findByPk(item.product_id);
-      total += Number(product.price) * item.quantity;
+
+      if (!product) {
+        return res
+          .status(400)
+          .json({ error: `Product not found: ${item.product_id}` });
+      }
+
+      if (Number(item.price) !== Number(product.price)) {
+        return res.status(400).json({
+          error: `Price mismatch for product ${product.name}`
+        });
+      }
     }
 
-    const order = await Order.create({ user_id, total, status: "pending" });
+    // Cria o pedido
+    const order = await Order.create({
+      user_id: req.userId,
+      address_id,
+      total,
+      status: "pending"
+    });
 
-    for (const item of cart_items) {
-      const product = await Product.findByPk(item.product_id);
-      await OrderItem.create({
-        order_id: order.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        price: product.price,
-      });
-    }
+    // Cria itens do pedido
+    const orderItems = await Promise.all(
+      items.map((item) =>
+        OrderItem.create({
+          order_id: order.id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price: item.price
+        })
+      )
+    );
 
-    await CartItem.destroy({ where: { user_id } });
-    return res.status(201).json(order);
+    // Cria pagamento
+    const payment = await Payment.create({
+      order_id: order.id,
+      method: payment_method,
+      amount: total,
+      status: "pending"
+    });
+
+    return res.status(201).json({
+      order,
+      items: orderItems,
+      payment
+    });
   }
 
-  async list(req, res) {
+  async index(req, res) {
     const orders = await Order.findAll({
-      include: [{ model: OrderItem }],
+      where: { user_id: req.userId },
+      include: [
+        { model: OrderItem, include: [Product] },
+        { model: Payment },
+        { model: Address }
+      ]
     });
+
     return res.json(orders);
+  }
+
+  async show(req, res) {
+    const { id } = req.params;
+
+    const order = await Order.findOne({
+      where: { id, user_id: req.userId },
+      include: [
+        { model: OrderItem, include: [Product] },
+        { model: Payment },
+        { model: Address }
+      ]
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    return res.json(order);
   }
 }
 
-export default new OrdersController();
+export default new OrderController();

@@ -23,6 +23,19 @@ routes.use(auth);
 
 routes.get("/me", UsersController.me);
 
+routes.get("/addresses", AddressController.index);
+routes.post("/addresses", AddressController.store);
+routes.put("/addresses/:id", AddressController.update);
+routes.delete("/addresses/:id", AddressController.delete);
+
+
+routes.post("/orders", OrderController.store);
+routes.get("/orders", OrderController.index);
+routes.get("/orders/:id", OrderController.show);
+
+
+routes.put("/payments/:id", PaymentController.update);
+
 routes.post("/cart", CartController.addItem);
 routes.get("/cart", CartController.list);
 routes.delete("/cart/:id", CartController.removeItem);
