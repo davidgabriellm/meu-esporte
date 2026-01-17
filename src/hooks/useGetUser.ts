@@ -10,9 +10,9 @@ export function useUser() {
   const token = localStorage.getItem("token");
 
   return useQuery({
-    queryKey: ["user", token], // ← CHAVE BASEADA NO TOKEN
+    queryKey: ["user", token], 
     queryFn: getUser,
-    enabled: !!token, // ← só busca se existir token
+    enabled: !!token, 
     retry: false,
   });
 }

@@ -39,9 +39,9 @@ const Header = () => {
         </div>
 
         <nav className="hidden gap-8 lg:flex">
-          <button onClick={() => navigate("/")} className="text-white hover:text-blue-400">Home</button>
-          <button onClick={() => navigate("/produtos")} className="text-white hover:text-blue-400">Todos os Produtos</button>
-          <button onClick={() => navigate("/carrinho")} className="text-white hover:text-blue-400">Carrinho</button>
+          <button onClick={() => navigate("/")} className="text-white hover:text-blue-400 lg:cursor-pointer">Home</button>
+          <button onClick={() => navigate("/produtos")} className="text-white hover:text-blue-400 lg:cursor-pointer">Todos os Produtos</button>
+          <button onClick={() => navigate("/carrinho")} className="text-white hover:text-blue-400 lg:cursor-pointer">Carrinho</button>
         </nav>
 
         <div className="block lg:hidden">

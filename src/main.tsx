@@ -11,7 +11,10 @@ import Login from "./pages/auth/Login.tsx";
 import Register from "./pages/auth/Register.tsx";
 import ProtectedRoute from "./routes/ProtectedRoute.tsx";
 
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import Identification from "./pages/identification/Identification.tsx";
+import Sucesso from "./pages/Sucesso.tsx";
 
 const router = createBrowserRouter([
   {
@@ -40,20 +43,32 @@ const router = createBrowserRouter([
       },
       {
         path: "/identificacao",
-        element: <Product />,
+        element: <Identification />,
       },
     ],
+  },
+  {
+    path: "/pagamento/sucesso",
+    element: <Sucesso />,
   },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
 ]);
 
-const client = new QueryClient()
+const client = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      retry: false,
+    },
+  },
+});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={client}>
-    <RouterProvider router={router} />
+      <RouterProvider router={router} />
     </QueryClientProvider>
   </StrictMode>,
 );

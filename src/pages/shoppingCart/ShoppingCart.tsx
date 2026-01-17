@@ -5,11 +5,13 @@ import { useCartStore } from "../../store/cart.store";
 import { useCreateOrder } from "../../hooks/useCreateOrder";
 import Carousel from "../../components/carouselImage/carousel";
 import { useProducts } from "../../hooks/useProducts";
+import { useNavigate } from "react-router-dom";
 
 const ShoppingCart = () => {
   const {data: products = []} = useProducts()
   const { cart, removeFromCart, updateQuantity, getTotalPrice, clearCart } =
     useCartStore();
+  const navigate = useNavigate();
 
 
 
@@ -91,15 +93,13 @@ const ShoppingCart = () => {
           ))}
 
           <div className="flex items-center justify-between lg:hidden">
-            <div className="flex items-center justify-between flex-col">
             <span className="text-2xl">Total</span>
             <span>
               <PriceFormatter value={getTotalPrice()} />
             </span>
-            </div>
           </div>
           <button
-            onClick={handleCheckout}
+            onClick={() => navigate("/identificacao")}
             disabled={createOrder.isPending}
             className="mt-4 rounded-md bg-blue-600 py-2 font-semibold text-white hover:bg-blue-700 lg:hidden"
           >
@@ -144,10 +144,10 @@ const ShoppingCart = () => {
                   maximumFractionDigits: 2,
                   style: "currency",
                   currency: "BRL",
-                }).format(0)}
+                }).format(getTotalPrice())}
               </span>
             </div>
-            <button className="cursor-pointer rounded-2xl bg-blue-800 p-1.5 text-[14px] text-white hover:bg-blue-900">
+            <button className="cursor-pointer rounded-2xl bg-blue-800 p-1.5 text-[14px] text-white hover:bg-blue-900" onClick={() => navigate('/identificacao')}>
               Confirmar
             </button>
           </div>

@@ -2,16 +2,17 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../services/api";
 
-interface OrderItemPayload {
+export interface OrderItemPayload {
   product_id: string;
   quantity: number;
   price: number;
 }
 
-interface CreateOrderPayload {
+export interface CreateOrderPayload {
   items: OrderItemPayload[];
   total: number;
   payment_method: string;
+  address_id: string;
 }
 
 export function useCreateOrder() {
