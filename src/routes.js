@@ -23,7 +23,6 @@ routes.post("/users", UsersController.register);
 routes.get("/products/:id", ProductsController.show);
 routes.get("/products", ProductsController.list);
 routes.get("/categories", CategoriesController.list);
-routes.post("/webhooks/stripe", StripeWebhookController.handle);
 
 routes.use(auth);
 
