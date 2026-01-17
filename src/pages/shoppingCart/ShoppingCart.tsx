@@ -1,166 +1,172 @@
-import PriceFormatter from "../../components/priceFormatter/PriceFormatter";
-import { IoMdAddCircleOutline } from "react-icons/io";
-import { MdDeleteForever, MdCancelPresentation } from "react-icons/md";
-import { useCartStore } from "../../store/cart.store";
-import { useCreateOrder } from "../../hooks/useCreateOrder";
-import Carousel from "../../components/carouselImage/carousel";
-import { useProducts } from "../../hooks/useProducts";
 import { useNavigate } from "react-router-dom";
+import { useCartStore } from "../../store/cart.store";
+import { useProducts } from "../../hooks/useProducts";
+import PriceFormatter from "../../components/priceFormatter/PriceFormatter";
+import Carousel from "../../components/carouselImage/carousel";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Ícones
+import { MdDeleteOutline, MdRemove, MdAdd, MdArrowForward } from "react-icons/md";
+import { IoBagHandleOutline } from "react-icons/io5";
+import { FaTruck } from "react-icons/fa";
 
 const ShoppingCart = () => {
-  const {data: products = []} = useProducts()
-  const { cart, removeFromCart, updateQuantity, getTotalPrice, clearCart } =
-    useCartStore();
   const navigate = useNavigate();
+  const { data: products = [] } = useProducts();
+  const { cart, removeFromCart, updateQuantity, getTotalPrice } = useCartStore();
 
+  const totalPrice = getTotalPrice();
+  const shippingCost = 0; // Você pode implementar lógica de frete aqui depois
+  const finalTotal = totalPrice + shippingCost;
 
-
-  const createOrder = useCreateOrder();
-
-  if (cart.length === 0)
-    return <p className="p-4 text-2xl">Seu carrinho está vazio.</p>;
-
-  const handleCheckout = async () => {
-    await createOrder.mutateAsync({
-      items: cart.map((item) => ({
-        product_id: item.id,
-        quantity: item.quantity,
-        price: item.price,
-      })),
-      payment_method: "credit_card",
-      total: getTotalPrice(),
-    });
-    clearCart();
-  };
+  // --- EMPTY STATE (Carrinho Vazio) ---
+  if (cart.length === 0) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 bg-gray-50 px-4 text-center">
+        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gray-200">
+          <IoBagHandleOutline size={48} className="text-gray-400" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">Seu carrinho está vazio</h2>
+          <p className="mt-2 text-gray-500">Parece que você ainda não adicionou nenhum item.</p>
+        </div>
+        <button
+          onClick={() => navigate("/")}
+          className="rounded-xl bg-blue-600 px-8 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+        >
+          Começar a comprar
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className="flex-col lg:flex lg:flex-row lg:px-9 lg:py-4">
-        <div className="mt-4 grid flex-1 grid-cols-1 gap-7 bg-gray-100 p-4 lg:w-3/5">
-          {cart.map((c) => (
-            <div
-              key={c.id}
-              className="relative flex flex-col gap-4 border-b-2 border-gray-200 pt-7 lg:flex-row lg:pb-7"
-            >
+    <div className="min-h-screen bg-gray-50 pb-20 pt-8">
+      <div className="container mx-auto max-w-7xl px-4 md:px-8">
+        
+        <h1 className="mb-8 text-3xl font-bold text-gray-900">Seu Carrinho</h1>
+
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          
+          {/* --- LISTA DE PRODUTOS (2 Colunas) --- */}
+          <div className="lg:col-span-2">
+            <div className="rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden">
+              <AnimatePresence initial={false}>
+                {cart.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                    className="relative flex flex-col gap-4 border-b border-gray-100 p-6 last:border-0 sm:flex-row sm:items-center"
+                  >
+                    {/* Imagem */}
+                    <div className="flex shrink-0 items-center justify-center rounded-lg bg-gray-50 p-2 h-24 w-24">
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        className="max-h-full max-w-full object-contain mix-blend-multiply"
+                      />
+                    </div>
+
+                    {/* Detalhes */}
+                    <div className="flex flex-1 flex-col gap-1">
+                      <h3 className="text-lg font-bold text-gray-800 line-clamp-1">{item.name}</h3>
+                      <p className="text-sm text-gray-500 line-clamp-2">{item.description}</p>
+                      <div className="mt-2 text-lg font-bold text-blue-600">
+                        <PriceFormatter value={item.price} />
+                      </div>
+                    </div>
+
+                    {/* Controles (Quantidade e Remover) */}
+                    <div className="flex items-center justify-between gap-6 sm:flex-col sm:items-end sm:gap-4">
+                      
+                      {/* Seletor de Qtd */}
+                      <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50">
+                        <button
+                          onClick={() => updateQuantity(item.id, Math.max(item.quantity - 1, 1))}
+                          className="p-2 text-gray-600 hover:text-red-500 transition-colors"
+                          disabled={item.quantity <= 1}
+                        >
+                          <MdRemove />
+                        </button>
+                        <span className="w-8 text-center font-medium text-gray-900">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="p-2 text-gray-600 hover:text-green-600 transition-colors"
+                        >
+                          <MdAdd />
+                        </button>
+                      </div>
+
+                      {/* Botão Remover */}
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        className="flex items-center gap-1 text-sm font-medium text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <MdDeleteOutline size={18} />
+                        <span className="hidden sm:inline">Remover</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* --- RESUMO DO PEDIDO (Sticky - 1 Coluna) --- */}
+          <div className="relative h-fit lg:col-span-1">
+            <div className="sticky top-24 rounded-2xl bg-white p-6 shadow-lg border border-gray-100">
+              <h2 className="mb-6 text-xl font-bold text-gray-900">Resumo do Pedido</h2>
+              
+              <div className="flex flex-col gap-4 border-b border-gray-100 pb-6">
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <PriceFormatter value={totalPrice} />
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <span>Frete</span>
+                    <FaTruck className="text-gray-400 text-xs" />
+                  </div>
+                  <span className="text-green-600 font-medium">Grátis</span>
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-center justify-between">
+                <span className="text-lg font-bold text-gray-900">Total</span>
+                <span className="text-2xl font-bold text-gray-900">
+                  <PriceFormatter value={finalTotal} />
+                </span>
+              </div>
+
               <button
-                className="absolute top-0 left-0"
-                onClick={() => removeFromCart(c.id)}
+                onClick={() => navigate("/identificacao")}
+                className="group mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-4 font-bold text-white transition-all hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-900/20 active:scale-95"
               >
-                <MdCancelPresentation size={22} className="cursor-pointer" />
+                Continuar Compra
+                <MdArrowForward className="transition-transform group-hover:translate-x-1" />
               </button>
 
-              <div className="flex items-center justify-start gap-3">
-                <img src={c.image_url} alt={c.name} className="w-14" />
-                <div className="flex flex-col">
-                  <h2 className="text-[18px] font-semibold text-gray-800">
-                    {c.name}
-                  </h2>
-                  <p className="line-clamp-2 text-[13px] text-gray-800">
-                    {c.description}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-between gap-5 lg:flex-row-reverse lg:items-center lg:gap-7">
-                <PriceFormatter value={c.price} />
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() =>
-                      updateQuantity(c.id, Math.max(c.quantity - 1, 1))
-                    }
-                  >
-                    <MdDeleteForever
-                      className={
-                        c.quantity === 1
-                          ? "text-gray-300"
-                          : "cursor-pointer text-red-700"
-                      }
-                      size={25}
-                    />
-                  </button>
-
-                  <span className="text-[20px]">{c.quantity}</span>
-
-                  <button onClick={() => updateQuantity(c.id, c.quantity + 1)}>
-                    <IoMdAddCircleOutline
-                      size={25}
-                      className="cursor-pointer"
-                    />
-                  </button>
-                </div>
+              <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
+                <FaTruck /> Entrega segura para todo Brasil
               </div>
             </div>
-          ))}
+          </div>
 
-          <div className="flex items-center justify-between lg:hidden">
-            <span className="text-2xl">Total</span>
-            <span>
-              <PriceFormatter value={getTotalPrice()} />
-            </span>
-          </div>
-          <button
-            onClick={() => navigate("/identificacao")}
-            disabled={createOrder.isPending}
-            className="mt-4 rounded-md bg-blue-600 py-2 font-semibold text-white hover:bg-blue-700 lg:hidden"
-          >
-            {createOrder.isPending ? "Processando..." : "Continuar"}
-          </button>
         </div>
-        <div className="hidden lg:flex lg:flex-col lg:items-center lg:justify-start lg:gap-2.5 lg:mx-[100px] lg:my-5 lg:h-60 lg:w-[340px] lg:bg-gray-100 lg:p-3 lg:rounded-xl">
-          <h2 className="mb-5 w-full text-left text-[20px] font-bold">
-            Resumo
-          </h2>
-          <div className="flex w-full flex-col gap-2">
-            <div className="flex w-full justify-between gap-5 font-light">
-              <h3 className="text-[15px]">subtotal</h3>
-              <span className="text-[15px]">
-                {" "}
-                {Intl.NumberFormat("pt-BR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                  style: "currency",
-                  currency: "BRL",
-                }).format(getTotalPrice())}
-              </span>
-            </div>
-            <div className="flex w-full justify-between gap-5 font-light">
-              <h3 className="text-[15px]">Transporte e Manuseio</h3>
-              <span className="text-[15px]">
-                {" "}
-                {Intl.NumberFormat("pt-BR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                  style: "currency",
-                  currency: "BRL",
-                }).format(0)}
-              </span>
-            </div>
-            <div className="mt-2 flex w-full justify-between gap-5 font-bold">
-              <h3 className="text-[15px]">Total</h3>
-              <span className="text-[15px]">
-                {" "}
-                {Intl.NumberFormat("pt-BR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                  style: "currency",
-                  currency: "BRL",
-                }).format(getTotalPrice())}
-              </span>
-            </div>
-            <button className="cursor-pointer rounded-2xl bg-blue-800 p-1.5 text-[14px] text-white hover:bg-blue-900" onClick={() => navigate('/identificacao')}>
-              Confirmar
-            </button>
-          </div>
+
+        {/* --- CARROSSEL DE RECOMENDAÇÕES --- */}
+        <div className="mt-20 border-t border-gray-200 pt-10">
+          <h3 className="mb-6 text-2xl font-bold text-gray-800">
+            Aproveite e leve também
+          </h3>
+          <Carousel produtos={products} />
         </div>
-      </div>
-      <div className="hidden lg:flex lg:w-full lg:flex-col lg:items-center lg:justify-center lg:gap-4 lg:p-5 lg:py-8 lg:pb-2">
-         <h3 className="flex text-left w-full font-bold text-xl mt-2">
-                Você também pode gostar
-              </h3>
         
-              <Carousel produtos={products} />
       </div>
-    </>
+    </div>
   );
 };
 

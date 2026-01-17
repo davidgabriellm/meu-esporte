@@ -1,59 +1,72 @@
-import React from "react";
+import { FaCheck, FaShoppingBag, FaUser, FaCreditCard } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 type StepperProps = {
   currentStep: number;
-  steps?: string[];
 };
 
-export default function Stepper({
-  currentStep,
-  steps = ["Sacola", "Identificação", "Pagamento"],
-}: StepperProps) {
+export default function Stepper({ currentStep }: StepperProps) {
+  // Configuração dos passos com Ícones
+  const steps = [
+    { label: "Sacola", icon: FaShoppingBag },
+    { label: "Identificação", icon: FaUser },
+    { label: "Pagamento", icon: FaCreditCard },
+  ];
+
   return (
-    <div className="hidden w-full items-center gap-4 lg:flex">
-      {steps.map((label, index) => {
-        const step = index + 1;
-        const isCompleted = step < currentStep;
-        const isCurrent = step === currentStep;
+    <div className="w-full py-6">
+      <div className="relative flex items-center justify-between">
+        
+        {/* Linha de Fundo (Cinza total) */}
+        <div className="absolute left-0 top-1/2 h-1 w-full -translate-y-1/2 rounded-full bg-gray-200" />
 
-        return (
-          <div key={label} className="flex w-full items-center">
-            {/* Circle + Label */}
-            <div className="flex min-w-max items-center gap-3">
-              <div
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-sm ${
-                  isCompleted
-                    ? "bg-green-500 text-white"
-                    : isCurrent
-                      ? "border-2 border-green-500 bg-white text-green-600"
-                      : "bg-gray-200 text-gray-500"
+        {/* Linha de Progresso (Verde animado) */}
+        <motion.div
+          className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-green-500"
+          initial={{ width: "0%" }}
+          animate={{
+            width: `${((currentStep - 1) / (steps.length - 1)) * 100}%`,
+          }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        />
+
+        {/* Renderização dos Passos */}
+        {steps.map((step, index) => {
+          const stepNumber = index + 1;
+          const isCompleted = stepNumber < currentStep;
+          const isCurrent = stepNumber === currentStep;
+          const Icon = step.icon;
+
+          return (
+            <div key={step.label} className="relative z-10 flex flex-col items-center">
+              
+              {/* Círculo do Passo */}
+              <motion.div
+                initial={false}
+                animate={{
+                  scale: isCurrent ? 1.1 : 1,
+                  backgroundColor: isCompleted || isCurrent ? "#22c55e" : "#e5e7eb", // green-500 ou gray-200
+                  color: isCompleted || isCurrent ? "#ffffff" : "#6b7280",
+                }}
+                className={`flex h-10 w-10 items-center justify-center rounded-full border-4 text-sm font-bold transition-colors duration-300 ${
+                  isCurrent ? "border-green-100 ring-2 ring-green-500 ring-offset-2" : "border-white"
                 }`}
               >
-                {isCompleted ? "✓" : step}
-              </div>
+                {isCompleted ? <FaCheck size={14} /> : <Icon size={16} />}
+              </motion.div>
 
+              {/* Label (Texto) */}
               <span
-                className={`font-medium ${
-                  isCompleted
-                    ? "text-green-600"
-                    : isCurrent
-                      ? "text-gray-700"
-                      : "text-gray-400"
+                className={`mt-2 text-xs font-semibold transition-colors duration-300 lg:text-sm ${
+                  isCompleted || isCurrent ? "text-green-600" : "text-gray-400"
                 }`}
               >
-                {label}
+                {step.label}
               </span>
             </div>
-
-            {/* Connector (não aparece após o último step) */}
-            {index < steps.length - 1 && (
-              <div
-                className={`ml-4 h-[3px] flex-1 rounded-full ${step < currentStep ? "bg-green-500" : "bg-gray-300"}`}
-              />
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

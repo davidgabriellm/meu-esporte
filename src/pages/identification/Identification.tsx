@@ -1,41 +1,82 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "react-router-dom";
 import { useAddresses } from "../../hooks/addresses/useAddresses";
 import { useCreateAddress } from "../../hooks/addresses/useCreateAddress";
-import { useCartStore } from "../../store/cart.store";
-import Stepper from "../../components/stepper/Stepper";
-import { useNavigate } from "react-router-dom";
 import { useCreateOrder } from "../../hooks/useCreateOrder";
 import { useCheckoutStripe } from "../../hooks/payment/useCreatePayment";
+import { useCartStore } from "../../store/cart.store";
 
+// Components
+import Stepper from "../../components/stepper/Stepper";
+import PriceFormatter from "../../components/priceFormatter/PriceFormatter";
+
+// Icons
+import { FaMapMarkerAlt, FaPlus, FaCheckCircle, FaLock } from "react-icons/fa";
+import { MdErrorOutline } from "react-icons/md";
+
+// Schema
 const addressSchema = z.object({
   street: z.string().min(1, "Rua é obrigatória"),
   number: z.string().min(1, "Número é obrigatório"),
   neighborhood: z.string().min(1, "Bairro é obrigatório"),
   city: z.string().min(1, "Cidade é obrigatória"),
   state: z.string().min(1, "Estado é obrigatório"),
-  zipcode: z.string().regex(/^[0-9]{8}$/, "CEP inválido, não acrescente o hífen"),
+  zipcode: z.string().regex(/^[0-9]{8}$/, "CEP inválido (apenas números)"),
   complement: z.string().max(80, "Máximo de 80 caracteres").optional(),
 });
 
+type AddressFormData = z.infer<typeof addressSchema>;
+
 export default function Identificacao() {
-  const { cart, getTotalPrice } = useCartStore();
-
-  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
-  const [addingNew, setAddingNew] = useState(false);
-
-  const { data: addresses } = useAddresses();
-  const createAddress = useCreateAddress();
-
   const navigate = useNavigate();
-  const createOrder = useCreateOrder();
+  const { cart, getTotalPrice } = useCartStore();
+  
+  // States
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [globalError, setGlobalError] = useState("");
 
+  // Hooks
+  const { data: addresses = [], isLoading } = useAddresses();
+  const createAddress = useCreateAddress();
+  const createOrder = useCreateOrder();
   const checkoutStripe = useCheckoutStripe();
 
-  async function handleContinue() {
+  // Se não tiver endereços, abre o formulário automaticamente
+  useEffect(() => {
+    if (!isLoading && addresses.length === 0) {
+      setIsFormOpen(true);
+    }
+  }, [addresses.length, isLoading]);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<AddressFormData>({
+    resolver: zodResolver(addressSchema),
+  });
+
+  const onSubmitAddress = (values: AddressFormData) => {
+    createAddress.mutate(values, {
+      onSuccess: (newAddress) => {
+        setSelectedAddress(newAddress.id);
+        setIsFormOpen(false);
+        reset();
+      },
+      onError: () => {
+        setGlobalError("Erro ao salvar endereço. Tente novamente.");
+      }
+    });
+  };
+
+  const handleGoToPayment = async () => {
     if (!selectedAddress) return;
+    setGlobalError("");
 
     const items = cart.map((item) => ({
       product_id: item.id,
@@ -51,215 +92,233 @@ export default function Identificacao() {
         payment_method: "stripe",
       });
 
-      const orderId = orderResponse.id || orderResponse.order.id;
+      const orderId = orderResponse.id || orderResponse.order?.id;
+      if(!orderId) throw new Error("ID do pedido não encontrado");
 
       const sessionData = await checkoutStripe.mutateAsync(orderId);
 
       if (sessionData.url) {
         window.location.href = sessionData.url;
       }
-      
-    } catch {
-      alert("Erro ao criar pedido");
+    } catch (err) {
+      console.error(err);
+      setGlobalError("Não foi possível iniciar o pagamento. Tente novamente.");
     }
-  }
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm({
-    resolver: zodResolver(addressSchema),
-  });
-
-  const onSubmit = (values: any) => {
-    createAddress.mutate(values, {
-      onSuccess: (newAddress) => {
-        setSelectedAddress(newAddress.id);
-        setAddingNew(false);
-        reset();
-      },
-    });
   };
 
+  const isProcessing = createAddress.isPending || createOrder.isPending || checkoutStripe.isPending;
+
   return (
-    <div className="flex flex-col items-center justify-center lg:flex-col lg:items-center lg:gap-7 lg:p-8">
-      <Stepper currentStep={2} />
-      <div className="flex flex-col items-center justify-center gap-7 p-4 lg:flex-row lg:items-start">
-        <div className="mt-4 w-[90%] space-y-4 rounded-2xl border-2 border-gray-100 p-4 shadow">
-          <h2 className="text-md font-semibold">Identificação</h2>
+    <div className="min-h-screen bg-gray-50 pb-20 pt-6">
+      <div className="container mx-auto max-w-6xl px-4">
+        
+        <Stepper currentStep={2} />
 
-          <div className="space-y-3">
-            {addresses?.map((a) => (
-              <label
-                key={a.id}
-                className="flex cursor-pointer items-center gap-4 rounded-xl border-2 border-gray-100 p-3"
-              >
-                <input
-                  type="radio"
-                  name="address"
-                  checked={selectedAddress === a.id}
-                  onChange={() => {
-                    setSelectedAddress(a.id);
-                    setAddingNew(false);
-                  }}
-                />
-                <span>{`${a.street}, ${a.number}, ${a.neighborhood}, ${a.city}`}</span>
-              </label>
-            ))}
+        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3 lg:items-start">
+          
+          {/* --- COLUNA DA ESQUERDA: ENDEREÇOS --- */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Cabeçalho da Seção */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <FaMapMarkerAlt className="text-blue-600" /> Endereço de Entrega
+              </h2>
+              {!isFormOpen && addresses.length > 0 && (
+                <button 
+                  onClick={() => { setIsFormOpen(true); setSelectedAddress(null); }}
+                  className="text-sm font-semibold text-blue-600 hover:underline flex items-center gap-1"
+                >
+                  <FaPlus size={12}/> Novo Endereço
+                </button>
+              )}
+            </div>
 
-            <label className="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-gray-100 p-3">
-              <input
-                type="radio"
-                name="address"
-                checked={addingNew}
-                onChange={() => {
-                  setAddingNew(true);
-                  setSelectedAddress(null);
-                }}
-              />
-              <span>Adicionar novo</span>
-            </label>
+            {/* Lista de Endereços Existentes */}
+            {!isFormOpen && (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {addresses.map((addr) => (
+                  <div
+                    key={addr.id}
+                    onClick={() => setSelectedAddress(addr.id)}
+                    className={`relative cursor-pointer rounded-xl border-2 p-5 transition-all hover:shadow-md ${
+                      selectedAddress === addr.id
+                        ? "border-blue-600 bg-blue-50/30"
+                        : "border-gray-200 bg-white"
+                    }`}
+                  >
+                    {selectedAddress === addr.id && (
+                      <div className="absolute top-4 right-4 text-blue-600">
+                        <FaCheckCircle size={20} />
+                      </div>
+                    )}
+                    <p className="font-bold text-gray-800">{addr.street}, {addr.number}</p>
+                    <p className="text-sm text-gray-600">{addr.neighborhood}</p>
+                    <p className="text-sm text-gray-600">{addr.city} - {addr.state}</p>
+                    <p className="text-xs text-gray-400 mt-2">CEP: {addr.zipcode}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Formulário de Novo Endereço */}
+            {isFormOpen && (
+              <form onSubmit={handleSubmit(onSubmitAddress)} className="rounded-2xl bg-white p-6 shadow-sm border border-gray-200 animate-fade-in">
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="font-bold text-gray-700">Adicionar Novo Endereço</h3>
+                  {addresses.length > 0 && (
+                    <button type="button" onClick={() => setIsFormOpen(false)} className="text-sm text-red-500 hover:underline">Cancelar</button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="md:col-span-2">
+                    <input
+                      {...register("street")}
+                      placeholder="Rua / Avenida"
+                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 ${errors.street ? 'border-red-500' : 'border-gray-200'}`}
+                    />
+                    {errors.street && <span className="text-xs text-red-500 ml-1">{errors.street.message}</span>}
+                  </div>
+
+                  <div>
+                    <input
+                      {...register("number")}
+                      placeholder="Número"
+                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.number ? 'border-red-500' : 'border-gray-200'}`}
+                    />
+                    {errors.number && <span className="text-xs text-red-500 ml-1">{errors.number.message}</span>}
+                  </div>
+
+                  <div>
+                    <input
+                      {...register("neighborhood")}
+                      placeholder="Bairro"
+                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.neighborhood ? 'border-red-500' : 'border-gray-200'}`}
+                    />
+                    {errors.neighborhood && <span className="text-xs text-red-500 ml-1">{errors.neighborhood.message}</span>}
+                  </div>
+
+                  <div>
+                    <input
+                      {...register("city")}
+                      placeholder="Cidade"
+                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.city ? 'border-red-500' : 'border-gray-200'}`}
+                    />
+                    {errors.city && <span className="text-xs text-red-500 ml-1">{errors.city.message}</span>}
+                  </div>
+
+                  <div>
+                    <input
+                      {...register("state")}
+                      placeholder="Estado (UF)"
+                      maxLength={2}
+                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.state ? 'border-red-500' : 'border-gray-200'}`}
+                    />
+                    {errors.state && <span className="text-xs text-red-500 ml-1">{errors.state.message}</span>}
+                  </div>
+
+                  <div>
+                    <input
+                      {...register("zipcode")}
+                      placeholder="CEP (somente números)"
+                      maxLength={8}
+                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.zipcode ? 'border-red-500' : 'border-gray-200'}`}
+                    />
+                    {errors.zipcode && <span className="text-xs text-red-500 ml-1">{errors.zipcode.message}</span>}
+                  </div>
+
+                  <div>
+                    <input
+                      {...register("complement")}
+                      placeholder="Complemento (Opcional)"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={createAddress.isPending}
+                  className="mt-6 w-full rounded-xl bg-gray-900 py-3 font-bold text-white transition-colors hover:bg-gray-800 disabled:bg-gray-400"
+                >
+                  {createAddress.isPending ? "Salvando..." : "Salvar e Usar este Endereço"}
+                </button>
+              </form>
+            )}
           </div>
 
-          {addingNew && (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 pt-4">
-              <input
-                className="w-full rounded-xl border-2 border-gray-100 px-4 py-2 text-[16px] font-normal outline-none focus:border-gray-300"
-                placeholder="Rua"
-                {...register("street")}
-              />
-              {errors.street && (
-                <p className="error">{errors.street.message}</p>
-              )}
+          {/* --- COLUNA DA DIREITA: RESUMO (STICKY) --- */}
+          <div className="relative lg:col-span-1">
+            <div className="sticky top-6 rounded-2xl bg-white p-6 shadow-lg border border-gray-100">
+              <h3 className="mb-4 text-lg font-bold text-gray-900">Resumo do Pedido</h3>
+              
+              {/* Mini Lista de Produtos */}
+              <div className="mb-4 max-h-60 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
+                {cart.map((item) => (
+                  <div key={item.id} className="flex gap-3 text-sm">
+                    <div className="h-12 w-12 flex-shrink-0 rounded bg-gray-100 p-1">
+                      <img src={item.image_url} className="h-full w-full object-contain mix-blend-multiply"/>
+                    </div>
+                    <div className="flex-1">
+                      <p className="line-clamp-1 font-medium text-gray-800">{item.name}</p>
+                      <p className="text-gray-500 text-xs">qtd: {item.quantity}</p>
+                    </div>
+                    <div className="font-semibold text-gray-800">
+                      <PriceFormatter value={item.price * item.quantity} />
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-              <input
-                className="w-full rounded-xl border-2 border-gray-100 px-4 py-2 text-[16px] font-normal outline-none focus:border-gray-300"
-                placeholder="Número"
-                {...register("number")}
-              />
-              {errors.number && (
-                <p className="error">{errors.number.message}</p>
-              )}
+              <div className="border-t border-gray-100 pt-4 space-y-2">
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <PriceFormatter value={getTotalPrice()} />
+                </div>
+                <div className="flex justify-between text-green-600 font-medium">
+                  <span>Frete</span>
+                  <span>Grátis</span>
+                </div>
+                <div className="mt-2 flex justify-between text-xl font-bold text-gray-900">
+                  <span>Total</span>
+                  <PriceFormatter value={getTotalPrice()} />
+                </div>
+              </div>
 
-              <input
-                className="w-full rounded-xl border-2 border-gray-100 px-4 py-2 text-[16px] font-normal outline-none focus:border-gray-300"
-                placeholder="Bairro"
-                {...register("neighborhood")}
-              />
-              {errors.neighborhood && (
-                <p className="error">{errors.neighborhood.message}</p>
-              )}
-
-              <input
-                className="w-full rounded-xl border-2 border-gray-100 px-4 py-2 text-[16px] font-normal outline-none focus:border-gray-300"
-                placeholder="Cidade"
-                {...register("city")}
-              />
-              {errors.city && <p className="error">{errors.city.message}</p>}
-
-              <input
-                className="w-full rounded-xl border-2 border-gray-100 px-4 py-2 text-[16px] font-normal outline-none focus:border-gray-300"
-                placeholder="Estado"
-                {...register("state")}
-              />
-              {errors.state && <p className="error">{errors.state.message}</p>}
-
-              <input
-                className="w-full rounded-xl border-2 border-gray-100 px-4 py-2 text-[16px] font-normal outline-none focus:border-gray-300"
-                placeholder="CEP"
-                {...register("zipcode")}
-              />
-              {errors.zipcode && (
-                <p className="error">{errors.zipcode.message}</p>
-              )}
-
-              <input
-                className="w-full rounded-xl border-2 border-gray-100 px-4 py-2 text-[16px] font-normal outline-none focus:border-gray-300"
-                placeholder="Complemento"
-                {...register("complement")}
-              />
-              {errors.complement && (
-                <p className="error">{errors.complement.message}</p>
+              {globalError && (
+                 <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                    <MdErrorOutline />
+                    {globalError}
+                 </div>
               )}
 
               <button
-                type="submit"
-                className="w-full rounded-xl bg-purple-600 p-3 text-white"
+                disabled={!selectedAddress || isFormOpen || isProcessing}
+                onClick={handleGoToPayment}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-4 font-bold text-white shadow-lg transition-all hover:bg-green-700 hover:shadow-green-700/20 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
               >
-                Salvar endereço
+                {isProcessing ? (
+                  <>
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    <FaLock size={16} />
+                    Ir para Pagamento
+                  </>
+                )}
               </button>
-            </form>
-          )}
-
-          <button
-            disabled={!selectedAddress || createOrder.isPending}
-            onClick={handleContinue}
-            className="mt-4 w-full rounded-xl bg-purple-600 p-3 text-white disabled:opacity-40"
-          >
-            Continuar com o pagamento
-          </button>
-        </div>
-        <div className="mt-4 mb-4 w-[90%] space-y-4 rounded-2xl border-2 border-gray-100 p-4 shadow">
-          <h2 className="mb-6 flex text-[18px] font-semibold">Seu Pedido</h2>
-          <div className="flex flex-col items-center justify-center gap-1">
-            <div className="flex w-full justify-between">
-              <h3 className="text-[15px] font-bold">Subtotal</h3>
-              <span className="text-[13px]">
-                {" "}
-                {Intl.NumberFormat("pt-BR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                  style: "currency",
-                  currency: "BRL",
-                }).format(getTotalPrice())}
-              </span>
-            </div>
-            <div className="flex w-full justify-between gap-5 font-light">
-              <h3 className="text-[15px] font-bold">Transporte e Manuseio</h3>
-              <span className="text-[13px]">Grátis</span>
-            </div>
-            <div className="flex w-full justify-between gap-5 font-light">
-              <h3 className="text-[15px] font-bold">Total</h3>
-              <span className="text-[13px] font-bold">
-                {" "}
-                {Intl.NumberFormat("pt-BR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                  style: "currency",
-                  currency: "BRL",
-                }).format(getTotalPrice())}
-              </span>
-            </div>
-            <div className="mt-10 flex flex-col gap-6">
-              {cart.map((c) => (
-                <div key={c.id} className="flex gap-3">
-                  <img
-                    src={c.image_url}
-                    alt={c.name}
-                    className="flex h-[86px] w-[86px] items-center justify-center object-contain"
-                  />
-                  <div className="flex flex-col">
-                    <h3 className="line-clamp-1 text-sm font-bold">{c.name}</h3>
-                    <p className="line-clamp-1 text-[12px] font-light text-gray-600">
-                      {c.description}
-                    </p>
-                    <span className="text-[12px] font-light">{c.quantity}</span>
-                    <span className="text-[13px]">
-                      {" "}
-                      {Intl.NumberFormat("pt-BR", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                        style: "currency",
-                        currency: "BRL",
-                      }).format(c.price)}
-                    </span>
-                  </div>
-                </div>
-              ))}
+              
+              {!selectedAddress && !isFormOpen && (
+                <p className="mt-2 text-center text-xs text-red-500">
+                  Selecione um endereço para continuar.
+                </p>
+              )}
             </div>
           </div>
+
         </div>
       </div>
     </div>
