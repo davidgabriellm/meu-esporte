@@ -15,7 +15,8 @@ class Address extends Model {
         neighborhood: DataTypes.STRING,
         city: DataTypes.STRING,
         state: DataTypes.STRING,
-        zipcode: DataTypes.STRING
+        zipcode: DataTypes.STRING,
+        complement: DataTypes.STRING
       },
       {
         sequelize,

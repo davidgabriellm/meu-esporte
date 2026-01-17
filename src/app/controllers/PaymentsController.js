@@ -14,7 +14,7 @@ class PaymentController {
       return res.status(404).json({ error: "Payment not found" });
     }
 
-    if (payment.Order.user_id !== req.userId) {
+    if (payment.Order.user_id !== req.user_id) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 

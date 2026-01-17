@@ -12,16 +12,14 @@ class OrderController {
       return res.status(400).json({ error: "Cart is empty" });
     }
 
-    // Verifica se endereço pertence ao usuário
     const address = await Address.findOne({
-      where: { id: address_id, user_id: req.userId }
+      where: { id: address_id, user_id: req.user_id },
     });
 
     if (!address) {
       return res.status(400).json({ error: "Invalid address" });
     }
 
-    // Valida se os produtos existem e têm preço correto
     for (const item of items) {
       const product = await Product.findByPk(item.product_id);
 
@@ -33,54 +31,54 @@ class OrderController {
 
       if (Number(item.price) !== Number(product.price)) {
         return res.status(400).json({
-          error: `Price mismatch for product ${product.name}`
+          error: `Price mismatch for product ${product.name}`,
         });
       }
     }
 
-    // Cria o pedido
     const order = await Order.create({
-      user_id: req.userId,
+      user_id: req.user_id,
       address_id,
       total,
-      status: "pending"
+      status: "pending",
     });
 
-    // Cria itens do pedido
     const orderItems = await Promise.all(
       items.map((item) =>
         OrderItem.create({
           order_id: order.id,
           product_id: item.product_id,
           quantity: item.quantity,
-          price: item.price
+          price: item.price,
         })
       )
     );
 
-    // Cria pagamento
     const payment = await Payment.create({
       order_id: order.id,
       method: payment_method,
       amount: total,
-      status: "pending"
+      status: "pending",
     });
 
     return res.status(201).json({
       order,
       items: orderItems,
-      payment
+      payment,
     });
   }
 
   async index(req, res) {
     const orders = await Order.findAll({
-      where: { user_id: req.userId },
+      where: { user_id: req.user_id },
       include: [
-        { model: OrderItem, include: [Product] },
+        {
+          model: OrderItem,
+          include: [{ model: Product, as: "product" }],
+        },
         { model: Payment },
-        { model: Address }
-      ]
+        { model: Address },
+      ],
     });
 
     return res.json(orders);
@@ -90,12 +88,15 @@ class OrderController {
     const { id } = req.params;
 
     const order = await Order.findOne({
-      where: { id, user_id: req.userId },
+      where: { id, user_id: req.user_id },
       include: [
-        { model: OrderItem, include: [Product] },
+        {
+          model: OrderItem,
+          include: [{ model: Product, as: "product" }],
+        },
         { model: Payment },
-        { model: Address }
-      ]
+        { model: Address },
+      ],
     });
 
     if (!order) {

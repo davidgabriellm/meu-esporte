@@ -13,10 +13,15 @@ class Payment extends Model {
         method: DataTypes.STRING,
         amount: DataTypes.DECIMAL(10, 2),
         status: DataTypes.STRING,
+
+        checkout_session_id: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
       },
       {
         sequelize,
-         name: {
+        name: {
           singular: "payment",
           plural: "payments",
         },
