@@ -24,12 +24,14 @@ class Order extends Model {
     );
   }
 
-  static associate(models) {
-    this.belongsTo(models.User, { foreignKey: "user_id" });
-    this.belongsTo(models.Address, { foreignKey: "address_id" }); 
-    this.hasMany(models.OrderItem, { foreignKey: "order_id" });
-    this.hasOne(models.Payment, { foreignKey: "order_id" });
-  }
+ static associate(models) {
+    this.belongsTo(models.User, { foreignKey: "user_id", as: "user" });
+    this.belongsTo(models.Address, { foreignKey: "address_id", as: "address" });
+    
+
+    this.hasMany(models.OrderItem, { foreignKey: "order_id", as: "items" });
+    this.hasOne(models.Payment, { foreignKey: "order_id", as: "payment" });
+}
 }
 
 export default Order;

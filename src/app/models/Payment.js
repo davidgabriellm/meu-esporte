@@ -25,12 +25,16 @@ class Payment extends Model {
           singular: "payment",
           plural: "payments",
         },
+        timestamps: true,
       }
     );
   }
 
   static associate(models) {
-    this.belongsTo(models.Order, { foreignKey: "order_id" });
+    this.belongsTo(models.Order, {
+      foreignKey: "order_id",
+      as: "order",
+    });
   }
 }
 

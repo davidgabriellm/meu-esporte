@@ -3,11 +3,12 @@ import Order from "../models/Order";
 
 class PaymentController {
   async update(req, res) {
+   
     const { id } = req.params;
     const { status } = req.body;
 
     const payment = await Payment.findByPk(id, {
-      include: [Order]
+      include: [Order],
     });
 
     if (!payment) {
@@ -20,7 +21,6 @@ class PaymentController {
 
     await payment.update({ status });
 
-    
     if (status === "paid") {
       await payment.Order.update({ status: "paid" });
     }

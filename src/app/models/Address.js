@@ -7,7 +7,7 @@ class Address extends Model {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
-          defaultValue: DataTypes.UUIDV4
+          defaultValue: DataTypes.UUIDV4,
         },
         user_id: DataTypes.UUID,
         street: DataTypes.STRING,
@@ -16,7 +16,7 @@ class Address extends Model {
         city: DataTypes.STRING,
         state: DataTypes.STRING,
         zipcode: DataTypes.STRING,
-        complement: DataTypes.STRING
+        complement: DataTypes.STRING,
       },
       {
         sequelize,
@@ -24,13 +24,14 @@ class Address extends Model {
           singular: "address",
           plural: "addresses",
         },
+        timestamps: true, 
       }
     );
   }
 
   static associate(models) {
     this.belongsTo(models.User, { foreignKey: "user_id" });
-    this.hasMany(models.Order, {foreignKey: "address_id", as: "orders" })
+    this.hasMany(models.Order, { foreignKey: "address_id", as: "orders" });
   }
 }
 
