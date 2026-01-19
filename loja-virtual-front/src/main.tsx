@@ -15,6 +15,7 @@ import ProtectedRoute from "./routes/ProtectedRoute.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Identification from "./pages/identification/Identification.tsx";
 import Sucesso from "./pages/Sucesso.tsx";
+import MyOrders from "./pages/orders/Orders.tsx";
 
 const router = createBrowserRouter([
   {
@@ -44,6 +45,10 @@ const router = createBrowserRouter([
       {
         path: "/identificacao",
         element: <Identification />,
+      },
+      {
+        path: "/pedidos",
+        element: <MyOrders />,
       },
     ],
   },

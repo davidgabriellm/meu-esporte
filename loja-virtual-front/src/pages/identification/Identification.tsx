@@ -9,15 +9,12 @@ import { useCreateOrder } from "../../hooks/useCreateOrder";
 import { useCheckoutStripe } from "../../hooks/payment/useCreatePayment";
 import { useCartStore } from "../../store/cart.store";
 
-// Components
 import Stepper from "../../components/stepper/Stepper";
 import PriceFormatter from "../../components/priceFormatter/PriceFormatter";
 
-// Icons
 import { FaMapMarkerAlt, FaPlus, FaCheckCircle, FaLock } from "react-icons/fa";
 import { MdErrorOutline } from "react-icons/md";
 
-// Schema
 const addressSchema = z.object({
   street: z.string().min(1, "Rua é obrigatória"),
   number: z.string().min(1, "Número é obrigatório"),
@@ -33,19 +30,16 @@ type AddressFormData = z.infer<typeof addressSchema>;
 export default function Identificacao() {
   const navigate = useNavigate();
   const { cart, getTotalPrice } = useCartStore();
-  
-  // States
+
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [globalError, setGlobalError] = useState("");
 
-  // Hooks
   const { data: addresses = [], isLoading } = useAddresses();
   const createAddress = useCreateAddress();
   const createOrder = useCreateOrder();
   const checkoutStripe = useCheckoutStripe();
 
-  // Se não tiver endereços, abre o formulário automaticamente
   useEffect(() => {
     if (!isLoading && addresses.length === 0) {
       setIsFormOpen(true);
@@ -70,7 +64,7 @@ export default function Identificacao() {
       },
       onError: () => {
         setGlobalError("Erro ao salvar endereço. Tente novamente.");
-      }
+      },
     });
   };
 
@@ -93,7 +87,7 @@ export default function Identificacao() {
       });
 
       const orderId = orderResponse.id || orderResponse.order?.id;
-      if(!orderId) throw new Error("ID do pedido não encontrado");
+      if (!orderId) throw new Error("ID do pedido não encontrado");
 
       const sessionData = await checkoutStripe.mutateAsync(orderId);
 
@@ -106,35 +100,35 @@ export default function Identificacao() {
     }
   };
 
-  const isProcessing = createAddress.isPending || createOrder.isPending || checkoutStripe.isPending;
+  const isProcessing =
+    createAddress.isPending ||
+    createOrder.isPending ||
+    checkoutStripe.isPending;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 pt-6">
+    <div className="min-h-screen bg-gray-50 pt-6 pb-20">
       <div className="container mx-auto max-w-6xl px-4">
-        
         <Stepper currentStep={2} />
 
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3 lg:items-start">
-          
-          {/* --- COLUNA DA ESQUERDA: ENDEREÇOS --- */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Cabeçalho da Seção */}
+          <div className="space-y-6 lg:col-span-2">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-xl font-bold text-gray-800">
                 <FaMapMarkerAlt className="text-blue-600" /> Endereço de Entrega
               </h2>
               {!isFormOpen && addresses.length > 0 && (
-                <button 
-                  onClick={() => { setIsFormOpen(true); setSelectedAddress(null); }}
-                  className="text-sm font-semibold text-blue-600 hover:underline flex items-center gap-1"
+                <button
+                  onClick={() => {
+                    setIsFormOpen(true);
+                    setSelectedAddress(null);
+                  }}
+                  className="flex items-center gap-1 text-sm font-semibold text-blue-600 hover:underline"
                 >
-                  <FaPlus size={12}/> Novo Endereço
+                  <FaPlus size={12} /> Novo Endereço
                 </button>
               )}
             </div>
 
-            {/* Lista de Endereços Existentes */}
             {!isFormOpen && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {addresses.map((addr) => (
@@ -152,22 +146,38 @@ export default function Identificacao() {
                         <FaCheckCircle size={20} />
                       </div>
                     )}
-                    <p className="font-bold text-gray-800">{addr.street}, {addr.number}</p>
+                    <p className="font-bold text-gray-800">
+                      {addr.street}, {addr.number}
+                    </p>
                     <p className="text-sm text-gray-600">{addr.neighborhood}</p>
-                    <p className="text-sm text-gray-600">{addr.city} - {addr.state}</p>
-                    <p className="text-xs text-gray-400 mt-2">CEP: {addr.zipcode}</p>
+                    <p className="text-sm text-gray-600">
+                      {addr.city} - {addr.state}
+                    </p>
+                    <p className="mt-2 text-xs text-gray-400">
+                      CEP: {addr.zipcode}
+                    </p>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Formulário de Novo Endereço */}
             {isFormOpen && (
-              <form onSubmit={handleSubmit(onSubmitAddress)} className="rounded-2xl bg-white p-6 shadow-sm border border-gray-200 animate-fade-in">
+              <form
+                onSubmit={handleSubmit(onSubmitAddress)}
+                className="animate-fade-in rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+              >
                 <div className="mb-4 flex items-center justify-between">
-                  <h3 className="font-bold text-gray-700">Adicionar Novo Endereço</h3>
+                  <h3 className="font-bold text-gray-700">
+                    Adicionar Novo Endereço
+                  </h3>
                   {addresses.length > 0 && (
-                    <button type="button" onClick={() => setIsFormOpen(false)} className="text-sm text-red-500 hover:underline">Cancelar</button>
+                    <button
+                      type="button"
+                      onClick={() => setIsFormOpen(false)}
+                      className="text-sm text-red-500 hover:underline"
+                    >
+                      Cancelar
+                    </button>
                   )}
                 </div>
 
@@ -176,36 +186,52 @@ export default function Identificacao() {
                     <input
                       {...register("street")}
                       placeholder="Rua / Avenida"
-                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 ${errors.street ? 'border-red-500' : 'border-gray-200'}`}
+                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 ${errors.street ? "border-red-500" : "border-gray-200"}`}
                     />
-                    {errors.street && <span className="text-xs text-red-500 ml-1">{errors.street.message}</span>}
+                    {errors.street && (
+                      <span className="ml-1 text-xs text-red-500">
+                        {errors.street.message}
+                      </span>
+                    )}
                   </div>
 
                   <div>
                     <input
                       {...register("number")}
                       placeholder="Número"
-                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.number ? 'border-red-500' : 'border-gray-200'}`}
+                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.number ? "border-red-500" : "border-gray-200"}`}
                     />
-                    {errors.number && <span className="text-xs text-red-500 ml-1">{errors.number.message}</span>}
+                    {errors.number && (
+                      <span className="ml-1 text-xs text-red-500">
+                        {errors.number.message}
+                      </span>
+                    )}
                   </div>
 
                   <div>
                     <input
                       {...register("neighborhood")}
                       placeholder="Bairro"
-                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.neighborhood ? 'border-red-500' : 'border-gray-200'}`}
+                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.neighborhood ? "border-red-500" : "border-gray-200"}`}
                     />
-                    {errors.neighborhood && <span className="text-xs text-red-500 ml-1">{errors.neighborhood.message}</span>}
+                    {errors.neighborhood && (
+                      <span className="ml-1 text-xs text-red-500">
+                        {errors.neighborhood.message}
+                      </span>
+                    )}
                   </div>
 
                   <div>
                     <input
                       {...register("city")}
                       placeholder="Cidade"
-                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.city ? 'border-red-500' : 'border-gray-200'}`}
+                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.city ? "border-red-500" : "border-gray-200"}`}
                     />
-                    {errors.city && <span className="text-xs text-red-500 ml-1">{errors.city.message}</span>}
+                    {errors.city && (
+                      <span className="ml-1 text-xs text-red-500">
+                        {errors.city.message}
+                      </span>
+                    )}
                   </div>
 
                   <div>
@@ -213,9 +239,13 @@ export default function Identificacao() {
                       {...register("state")}
                       placeholder="Estado (UF)"
                       maxLength={2}
-                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.state ? 'border-red-500' : 'border-gray-200'}`}
+                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.state ? "border-red-500" : "border-gray-200"}`}
                     />
-                    {errors.state && <span className="text-xs text-red-500 ml-1">{errors.state.message}</span>}
+                    {errors.state && (
+                      <span className="ml-1 text-xs text-red-500">
+                        {errors.state.message}
+                      </span>
+                    )}
                   </div>
 
                   <div>
@@ -223,9 +253,13 @@ export default function Identificacao() {
                       {...register("zipcode")}
                       placeholder="CEP (somente números)"
                       maxLength={8}
-                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.zipcode ? 'border-red-500' : 'border-gray-200'}`}
+                      className={`w-full rounded-lg border bg-gray-50 px-4 py-3 outline-none focus:border-blue-500 focus:bg-white ${errors.zipcode ? "border-red-500" : "border-gray-200"}`}
                     />
-                    {errors.zipcode && <span className="text-xs text-red-500 ml-1">{errors.zipcode.message}</span>}
+                    {errors.zipcode && (
+                      <span className="ml-1 text-xs text-red-500">
+                        {errors.zipcode.message}
+                      </span>
+                    )}
                   </div>
 
                   <div>
@@ -242,27 +276,36 @@ export default function Identificacao() {
                   disabled={createAddress.isPending}
                   className="mt-6 w-full rounded-xl bg-gray-900 py-3 font-bold text-white transition-colors hover:bg-gray-800 disabled:bg-gray-400"
                 >
-                  {createAddress.isPending ? "Salvando..." : "Salvar e Usar este Endereço"}
+                  {createAddress.isPending
+                    ? "Salvando..."
+                    : "Salvar e Usar este Endereço"}
                 </button>
               </form>
             )}
           </div>
 
-          {/* --- COLUNA DA DIREITA: RESUMO (STICKY) --- */}
           <div className="relative lg:col-span-1">
-            <div className="sticky top-6 rounded-2xl bg-white p-6 shadow-lg border border-gray-100">
-              <h3 className="mb-4 text-lg font-bold text-gray-900">Resumo do Pedido</h3>
-              
-              {/* Mini Lista de Produtos */}
-              <div className="mb-4 max-h-60 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
+            <div className="sticky top-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-lg">
+              <h3 className="mb-4 text-lg font-bold text-gray-900">
+                Resumo do Pedido
+              </h3>
+
+              <div className="custom-scrollbar mb-4 max-h-60 space-y-3 overflow-y-auto pr-1">
                 {cart.map((item) => (
                   <div key={item.id} className="flex gap-3 text-sm">
                     <div className="h-12 w-12 flex-shrink-0 rounded bg-gray-100 p-1">
-                      <img src={item.image_url} className="h-full w-full object-contain mix-blend-multiply"/>
+                      <img
+                        src={item.image_url}
+                        className="h-full w-full object-contain mix-blend-multiply"
+                      />
                     </div>
                     <div className="flex-1">
-                      <p className="line-clamp-1 font-medium text-gray-800">{item.name}</p>
-                      <p className="text-gray-500 text-xs">qtd: {item.quantity}</p>
+                      <p className="line-clamp-1 font-medium text-gray-800">
+                        {item.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        qtd: {item.quantity}
+                      </p>
                     </div>
                     <div className="font-semibold text-gray-800">
                       <PriceFormatter value={item.price * item.quantity} />
@@ -271,12 +314,12 @@ export default function Identificacao() {
                 ))}
               </div>
 
-              <div className="border-t border-gray-100 pt-4 space-y-2">
+              <div className="space-y-2 border-t border-gray-100 pt-4">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
                   <PriceFormatter value={getTotalPrice()} />
                 </div>
-                <div className="flex justify-between text-green-600 font-medium">
+                <div className="flex justify-between font-medium text-green-600">
                   <span>Frete</span>
                   <span>Grátis</span>
                 </div>
@@ -287,10 +330,10 @@ export default function Identificacao() {
               </div>
 
               {globalError && (
-                 <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600">
-                    <MdErrorOutline />
-                    {globalError}
-                 </div>
+                <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                  <MdErrorOutline />
+                  {globalError}
+                </div>
               )}
 
               <button
@@ -300,7 +343,7 @@ export default function Identificacao() {
               >
                 {isProcessing ? (
                   <>
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
                     Processando...
                   </>
                 ) : (
@@ -310,7 +353,7 @@ export default function Identificacao() {
                   </>
                 )}
               </button>
-              
+
               {!selectedAddress && !isFormOpen && (
                 <p className="mt-2 text-center text-xs text-red-500">
                   Selecione um endereço para continuar.
@@ -318,7 +361,6 @@ export default function Identificacao() {
               )}
             </div>
           </div>
-
         </div>
       </div>
     </div>

@@ -6,24 +6,19 @@ import { useUser } from "../../hooks/useGetUser";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 
-// Definindo a interface do Usuário (baseado no uso: user.name)
 interface User {
   name: string;
   email?: string;
-  // adicione outros campos se necessário
 }
 
 const Header = () => {
   const navigate = useNavigate();
-  // Ajuste a tipagem do hook useUser conforme sua definição real, aqui assumi a estrutura básica
   const { data: user, isLoading } = useUser() as { data: User | null; isLoading: boolean };
   const [showMenu, setShowMenu] = useState<boolean>(false);
 
-  // Tipagem correta para referência de elemento HTML
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Tipagem do evento nativo do DOM
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setShowMenu(false);
@@ -52,7 +47,6 @@ const Header = () => {
       className="sticky top-0 z-50 flex h-20 w-full items-center justify-center bg-gray-900/95 shadow-md backdrop-blur-sm px-6 border-b border-gray-800"
     >
       <div className="flex w-full max-w-7xl items-center justify-between">
-        {/* LOGO */}
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
           <motion.img 
             whileHover={{ rotate: 10 }}
@@ -65,7 +59,6 @@ const Header = () => {
           </span>
         </div>
 
-        {/* NAV DESKTOP */}
         <nav className="hidden gap-8 lg:flex items-center">
           {[
             { name: "Home", path: "/" },
@@ -85,12 +78,11 @@ const Header = () => {
           ))}
         </nav>
 
-        {/* MOBILE MENU TRIGGER */}
+     
         <div className="block lg:hidden text-white">
           <RightSheet />
         </div>
 
-        {/* AREA DO USUÁRIO */}
         <div className="hidden items-center justify-center gap-4 lg:flex relative" ref={menuRef}>
           {isLoading ? (
              <div className="h-4 w-20 bg-gray-700 animate-pulse rounded"></div>
@@ -134,7 +126,7 @@ const Header = () => {
                    <p className="text-xs text-gray-500 uppercase font-bold">Conta</p>
                 </div>
                 <button
-                  onClick={() => navigate("/carrinho")}
+                  onClick={() => navigate("/pedidos")}
                   className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2 transition-colors"
                 >
                   <FaShoppingBag /> Meus Pedidos

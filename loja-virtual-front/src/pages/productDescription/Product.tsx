@@ -7,8 +7,15 @@ import PriceFormatter from "../../components/priceFormatter/PriceFormatter";
 import Carousel from "../../components/carouselImage/carousel";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Ícones
-import { FaStar, FaStarHalfAlt, FaRegStar, FaTruck, FaShieldAlt, FaUndo, FaCheckCircle } from "react-icons/fa";
+import {
+  FaStar,
+  FaStarHalfAlt,
+  FaRegStar,
+  FaTruck,
+  FaShieldAlt,
+  FaUndo,
+  FaCheckCircle,
+} from "react-icons/fa";
 import { MdOutlineAddShoppingCart, MdRemove, MdAdd } from "react-icons/md";
 
 const ProductDetails = () => {
@@ -17,17 +24,13 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const [showToast, setShowToast] = useState(false);
 
-  // Hooks de dados
   const { data: product, isLoading, error } = useProduct(id!);
   const { data: products = [] } = useProducts();
-  
-  // Store do Carrinho
+
   const addToCart = useCartStore((state) => state.addToCart);
 
-  // Filtrar produtos relacionados (exclui o atual)
   const relatedProducts = products.filter((p) => String(p.id) !== String(id));
 
-  // Funções de manipulação
   const handleQuantity = (type: "inc" | "dec") => {
     if (type === "dec" && quantity > 1) setQuantity(quantity - 1);
     if (type === "inc" && quantity < 10) setQuantity(quantity + 1);
@@ -35,14 +38,13 @@ const ProductDetails = () => {
 
   const handleAddToCart = () => {
     if (!product) return;
-    
+
     addToCart({ ...product, quantity });
-    
+
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  // Função para renderizar estrelas
   const renderStars = (rating: number = 4.5) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -57,10 +59,9 @@ const ProductDetails = () => {
     return stars;
   };
 
-  // --- LOADING STATE (SKELETON) ---
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-10 grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-10 lg:grid-cols-2">
         <div className="h-96 w-full animate-pulse rounded-3xl bg-gray-200" />
         <div className="space-y-4">
           <div className="h-8 w-3/4 animate-pulse rounded bg-gray-200" />
@@ -75,8 +76,8 @@ const ProductDetails = () => {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
         <p className="text-xl text-gray-600">Produto não encontrado.</p>
-        <button 
-          onClick={() => navigate("/produtos")} 
+        <button
+          onClick={() => navigate("/produtos")}
           className="text-blue-600 hover:underline"
         >
           Voltar para a loja
@@ -87,15 +88,13 @@ const ProductDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      
-      {/* --- TOAST NOTIFICATION --- */}
       <AnimatePresence>
         {showToast && (
           <motion.div
             initial={{ opacity: 0, y: -50, x: "-50%" }}
             animate={{ opacity: 1, y: 20, x: "-50%" }}
             exit={{ opacity: 0, y: -50, x: "-50%" }}
-            className="fixed left-1/2 top-0 z-[100] flex items-center gap-3 rounded-full bg-gray-900 px-6 py-3 text-white shadow-xl backdrop-blur-md"
+            className="fixed top-0 left-1/2 z-[100] flex items-center gap-3 rounded-full bg-gray-900 px-6 py-3 text-white shadow-xl backdrop-blur-md"
           >
             <FaCheckCircle className="text-green-400" />
             <span>Produto adicionado ao carrinho!</span>
@@ -104,74 +103,66 @@ const ProductDetails = () => {
       </AnimatePresence>
 
       <div className="mx-auto max-w-7xl px-4 py-8 lg:py-12">
-        
-        {/* --- GRID DO PRODUTO --- */}
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-          
-          {/* COLUNA DA ESQUERDA: IMAGEM */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center justify-center rounded-3xl bg-white p-8 shadow-sm border border-gray-100 relative overflow-hidden"
+            className="relative flex items-center justify-center overflow-hidden rounded-3xl border border-gray-100 bg-white p-8 shadow-sm"
           >
-            {/* Background Decorativo */}
             <div className="absolute top-0 right-0 h-64 w-64 translate-x-1/3 -translate-y-1/3 rounded-full bg-blue-50 opacity-50 blur-3xl"></div>
-            
-            <img 
-              src={product.image_url} 
-              alt={product.name} 
-              className="relative z-10 max-h-[400px] w-full object-contain mix-blend-multiply transition-transform duration-500 hover:scale-105" 
+
+            <img
+              src={product.image_url}
+              alt={product.name}
+              className="relative z-10 max-h-[400px] w-full object-contain mix-blend-multiply transition-transform duration-500 hover:scale-105"
             />
           </motion.div>
 
-          {/* COLUNA DA DIREITA: INFORMAÇÕES */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex flex-col justify-center"
           >
-            <span className="mb-2 text-sm font-bold uppercase tracking-wider text-blue-600">
+            <span className="mb-2 text-sm font-bold tracking-wider text-blue-600 uppercase">
               Esportes / Equipamentos
             </span>
-            
+
             <h1 className="mb-4 text-3xl font-black text-gray-900 lg:text-4xl">
               {product.name}
             </h1>
 
-            {/* Avaliação */}
             <div className="mb-6 flex items-center gap-2">
-              <div className="flex text-lg">
-                 {renderStars(4.5)} {/* Simulando 4.5, você pode usar um valor do backend */}
-              </div>
+              <div className="flex text-lg">{renderStars(4.5)}</div>
               <span className="text-sm text-gray-500">(128 avaliações)</span>
             </div>
 
-            {/* Preço */}
             <div className="mb-6">
               <span className="text-4xl font-bold text-gray-900">
                 <PriceFormatter value={product.price} />
               </span>
-              <p className="text-sm text-gray-500">Em até 12x sem juros no cartão</p>
+              <p className="text-sm text-gray-500">
+                Em até 12x sem juros no cartão
+              </p>
             </div>
 
-            {/* Descrição */}
             <p className="mb-8 text-lg leading-relaxed text-gray-600">
-              {product.description || "Este produto foi projetado para alta performance, garantindo durabilidade e conforto. Ideal para atletas que buscam superar seus limites."}
+              {product.description ||
+                "Este produto foi projetado para alta performance, garantindo durabilidade e conforto. Ideal para atletas que buscam superar seus limites."}
             </p>
 
-            {/* Ações (Quantidade + Botão) */}
             <div className="mb-8 flex flex-col gap-4 sm:flex-row">
-              {/* Seletor de Quantidade */}
               <div className="flex items-center rounded-xl border border-gray-200 bg-white">
-                <button 
+                <button
                   onClick={() => handleQuantity("dec")}
                   className="px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-red-500 disabled:opacity-50"
                   disabled={quantity <= 1}
                 >
                   <MdRemove />
                 </button>
-                <span className="w-12 text-center font-bold text-gray-900">{quantity}</span>
-                <button 
+                <span className="w-12 text-center font-bold text-gray-900">
+                  {quantity}
+                </span>
+                <button
                   onClick={() => handleQuantity("inc")}
                   className="px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-green-600"
                 >
@@ -179,7 +170,6 @@ const ProductDetails = () => {
                 </button>
               </div>
 
-              {/* Botão Comprar */}
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -191,7 +181,6 @@ const ProductDetails = () => {
               </motion.button>
             </div>
 
-            {/* Informações Extras */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="flex items-center gap-3 rounded-lg border border-gray-100 bg-white p-3 shadow-sm">
                 <FaTruck className="text-orange-500" />
@@ -215,24 +204,21 @@ const ProductDetails = () => {
                 </div>
               </div>
             </div>
-
           </motion.div>
         </div>
 
-        {/* --- CAROUSEL DE RELACIONADOS --- */}
         <div className="mt-20">
           <div className="mb-8 flex items-center justify-between">
             <h3 className="text-2xl font-bold text-gray-900">
               Você também pode gostar
             </h3>
-            <div className="h-1 flex-1 bg-gray-200 ml-6 rounded-full hidden sm:block"></div>
+            <div className="ml-6 hidden h-1 flex-1 rounded-full bg-gray-200 sm:block"></div>
           </div>
-          
+
           <div className="relative">
-             <Carousel produtos={relatedProducts} />
+            <Carousel produtos={relatedProducts} />
           </div>
         </div>
-        
       </div>
     </div>
   );

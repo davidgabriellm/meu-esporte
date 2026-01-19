@@ -1,4 +1,4 @@
-// src/hooks/cart/useCartStore.ts
+
 import { create } from "zustand";
 
 export interface CartItem {

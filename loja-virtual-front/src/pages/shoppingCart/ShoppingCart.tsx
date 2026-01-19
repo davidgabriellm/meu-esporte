@@ -5,7 +5,7 @@ import PriceFormatter from "../../components/priceFormatter/PriceFormatter";
 import Carousel from "../../components/carouselImage/carousel";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Ícones
+
 import { MdDeleteOutline, MdRemove, MdAdd, MdArrowForward } from "react-icons/md";
 import { IoBagHandleOutline } from "react-icons/io5";
 import { FaTruck } from "react-icons/fa";
@@ -16,10 +16,10 @@ const ShoppingCart = () => {
   const { cart, removeFromCart, updateQuantity, getTotalPrice } = useCartStore();
 
   const totalPrice = getTotalPrice();
-  const shippingCost = 0; // Você pode implementar lógica de frete aqui depois
+  const shippingCost = 0;
   const finalTotal = totalPrice + shippingCost;
 
-  // --- EMPTY STATE (Carrinho Vazio) ---
+  
   if (cart.length === 0) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 bg-gray-50 px-4 text-center">
@@ -48,7 +48,7 @@ const ShoppingCart = () => {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           
-          {/* --- LISTA DE PRODUTOS (2 Colunas) --- */}
+          
           <div className="lg:col-span-2">
             <div className="rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden">
               <AnimatePresence initial={false}>
@@ -61,7 +61,7 @@ const ShoppingCart = () => {
                     exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                     className="relative flex flex-col gap-4 border-b border-gray-100 p-6 last:border-0 sm:flex-row sm:items-center"
                   >
-                    {/* Imagem */}
+              
                     <div className="flex shrink-0 items-center justify-center rounded-lg bg-gray-50 p-2 h-24 w-24">
                       <img
                         src={item.image_url}
@@ -70,7 +70,7 @@ const ShoppingCart = () => {
                       />
                     </div>
 
-                    {/* Detalhes */}
+                
                     <div className="flex flex-1 flex-col gap-1">
                       <h3 className="text-lg font-bold text-gray-800 line-clamp-1">{item.name}</h3>
                       <p className="text-sm text-gray-500 line-clamp-2">{item.description}</p>
@@ -79,10 +79,10 @@ const ShoppingCart = () => {
                       </div>
                     </div>
 
-                    {/* Controles (Quantidade e Remover) */}
+                   
                     <div className="flex items-center justify-between gap-6 sm:flex-col sm:items-end sm:gap-4">
                       
-                      {/* Seletor de Qtd */}
+            
                       <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50">
                         <button
                           onClick={() => updateQuantity(item.id, Math.max(item.quantity - 1, 1))}
@@ -100,7 +100,7 @@ const ShoppingCart = () => {
                         </button>
                       </div>
 
-                      {/* Botão Remover */}
+                  
                       <button
                         onClick={() => removeFromCart(item.id)}
                         className="flex items-center gap-1 text-sm font-medium text-gray-400 hover:text-red-500 transition-colors"
@@ -115,7 +115,7 @@ const ShoppingCart = () => {
             </div>
           </div>
 
-          {/* --- RESUMO DO PEDIDO (Sticky - 1 Coluna) --- */}
+         
           <div className="relative h-fit lg:col-span-1">
             <div className="sticky top-24 rounded-2xl bg-white p-6 shadow-lg border border-gray-100">
               <h2 className="mb-6 text-xl font-bold text-gray-900">Resumo do Pedido</h2>
@@ -156,8 +156,6 @@ const ShoppingCart = () => {
           </div>
 
         </div>
-
-        {/* --- CARROSSEL DE RECOMENDAÇÕES --- */}
         <div className="mt-20 border-t border-gray-200 pt-10">
           <h3 className="mb-6 text-2xl font-bold text-gray-800">
             Aproveite e leve também

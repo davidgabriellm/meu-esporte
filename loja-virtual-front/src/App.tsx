@@ -1,6 +1,6 @@
-import "./App.css";
-import Footer from "./components/footer/Index"; 
-import Header from "./components/header/Index";
+
+import Footer from "./components/footer/Index.tsx"; 
+import Header from "./components/header/index.tsx";
 import { Outlet } from "react-router-dom";
 
 function App() {
