@@ -9,6 +9,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaLock, FaEnvelope } from "react-icons/fa";
 import { MdErrorOutline } from "react-icons/md";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { AxiosError } from "axios";
 
 const schema = z.object({
   email: z.string().email("Digite um email válido"),
@@ -33,21 +34,21 @@ export default function Login() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: async (data: LoginFormData) => {
-      setLoginError("");
-      const response = await api.post("/sessions", data);
-      return response.data;
-    },
-    onSuccess: (data) => {
-      localStorage.setItem("token", data.token);
-      queryClient.invalidateQueries({ queryKey: ["user"] });
-      navigate("/");
-    },
-    onError: (error: any) => {
-      console.error(error);
-      setLoginError("Email ou senha incorretos. Tente novamente.");
-    },
-  });
+  mutationFn: async (data: LoginFormData) => {
+    setLoginError("");
+    const response = await api.post("/sessions", data);
+    return response.data;
+  },
+  onSuccess: (data) => {
+    localStorage.setItem("token", data.token);
+    queryClient.invalidateQueries({ queryKey: ["user"] });
+    navigate("/");
+  },
+  onError: (error: AxiosError) => {
+    console.error(error);
+    setLoginError("Email ou senha incorretos. Tente novamente.");
+  },
+});
 
   const onSubmit = (data: LoginFormData) => {
     loginMutation.mutate(data);

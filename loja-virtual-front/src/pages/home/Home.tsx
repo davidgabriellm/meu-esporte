@@ -17,7 +17,7 @@ const Home = () => {
     return () => clearInterval(intervalo);
   }, [destaques.length]);
 
-  const trocarImagem = (novoIndex) => {
+  const trocarImagem = (novoIndex: number) => {
     setFade(false);
     setTimeout(() => {
       setIndex(novoIndex);

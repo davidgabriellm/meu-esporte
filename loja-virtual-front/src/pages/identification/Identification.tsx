@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
 import { useAddresses } from "../../hooks/addresses/useAddresses";
 import { useCreateAddress } from "../../hooks/addresses/useCreateAddress";
 import { useCreateOrder } from "../../hooks/useCreateOrder";
@@ -28,7 +27,6 @@ const addressSchema = z.object({
 type AddressFormData = z.infer<typeof addressSchema>;
 
 export default function Identificacao() {
-  const navigate = useNavigate();
   const { cart, getTotalPrice } = useCartStore();
 
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
@@ -56,16 +54,22 @@ export default function Identificacao() {
   });
 
   const onSubmitAddress = (values: AddressFormData) => {
-    createAddress.mutate(values, {
-      onSuccess: (newAddress) => {
-        setSelectedAddress(newAddress.id);
-        setIsFormOpen(false);
-        reset();
+    createAddress.mutate(
+      {
+        ...values,
+        complement: values.complement ?? "",
       },
-      onError: () => {
-        setGlobalError("Erro ao salvar endereço. Tente novamente.");
+      {
+        onSuccess: (newAddress) => {
+          setSelectedAddress(newAddress.id);
+          setIsFormOpen(false);
+          reset();
+        },
+        onError: () => {
+          setGlobalError("Erro ao salvar endereço. Tente novamente.");
+        },
       },
-    });
+    );
   };
 
   const handleGoToPayment = async () => {
