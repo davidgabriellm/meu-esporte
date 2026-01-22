@@ -1,9 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../../services/api";
 
-interface CheckoutSessionPayload {
-  order_id: string; 
-}
 
 interface CheckoutSessionResponse {
   url: string;
