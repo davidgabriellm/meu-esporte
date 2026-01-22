@@ -1,4 +1,3 @@
-import * as Yup from "yup";
 import Product from "../models/Product.js";
 import Category from "../models/Category.js";
 import * as Yup from "yup";
@@ -28,7 +27,7 @@ class ProductsController {
     });
     return res.json(products);
   }
-  async show (req, res){
+  async show(req, res) {
     const { id } = req.params;
 
     const product = await Product.findByPk(id, {
