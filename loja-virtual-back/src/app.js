@@ -1,9 +1,9 @@
 import express from "express";
-import routes from "./routes";
+import routes from "./routes.js";
 import cors from "cors";
-import StripeWebhookController from "./app/controllers/StripeWebhookController"; // Importe o Controller aqui
+import StripeWebhookController from "./app/controllers/StripeWebhookController.js"; 
 
-import "./db/index";
+import "./db/inde.js";
 
 class App {
   constructor() {

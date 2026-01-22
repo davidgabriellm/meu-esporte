@@ -1,5 +1,5 @@
-import Payment from "../models/Payment";
-import Order from "../models/Order";
+import Payment from "../models/Payment.js";
+import Order from "../models/Order.js";
 
 class PaymentController {
   async update(req, res) {

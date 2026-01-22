@@ -1,18 +1,17 @@
 import { Router } from "express";
 
-import StripeController from "./app/controllers/StripeController";
+import StripeController from "./app/controllers/StripeController.js";
 
-import StripeWebhookController from "./app/controllers/StripeWebhookController";
-import ProductsController from "./app/controllers/ProductsController";
-import CategoriesController from "./app/controllers/CategoriesController";
-import SessionsController from "./app/controllers/SessionsController";
-import CartController from "./app/controllers/CartController";
-import UsersController from "./app/controllers/UsersController";
-import AddressesController from "./app/controllers/AddressesController";
-import OrdersController from "./app/controllers/OrdersController"
-import PaymentsController from "./app/controllers/PaymentsController"
+import ProductsController from "./app/controllers/ProductsController.js";
+import CategoriesController from "./app/controllers/CategoriesController.js";
+import SessionsController from "./app/controllers/SessionsController.js";
+import CartController from "./app/controllers/CartController.js";
+import UsersController from "./app/controllers/UsersController.js";
+import AddressesController from "./app/controllers/AddressesController.js";
+import OrdersController from "./app/controllers/OrdersController.js"
+import PaymentsController from "./app/controllers/PaymentsController.js"
 
-import auth from "./app/middlewares/auth";
+import auth from "./app/middlewares/auth.js";
 
 const routes = new Router();
 
