@@ -3,7 +3,7 @@ import routes from "./routes.js";
 import cors from "cors";
 import StripeWebhookController from "./app/controllers/StripeWebhookController.js"; 
 
-import "./db/inde.js";
+import "./db/index.js";
 
 class App {
   constructor() {
